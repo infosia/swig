@@ -1352,6 +1352,76 @@ lua_clean:
 	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
+#####                   SQUIRREL                            ######
+##################################################################
+
+# Squirrel flags
+SQUIRREL_INCLUDE= @SQUIRRELFLAGS@
+SQUIRREL_LIB    = @SQUIRRELLINK@
+
+SQUIRREL_SO     = @SQUIRREL_SO@
+
+SQUIRREL        = @SQUIRRELBIN@
+SQUIRREL_SCRIPT = $(RUNME).nut
+
+# Squirrel interpreter
+SQUIRREL_INTERP = ../sq.c
+
+# ----------------------------------------------------------------
+# Build statically linked Squirrel interpreter
+# ----------------------------------------------------------------
+
+squirrel: $(SRCS)
+	$(SWIG) -squirrel $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) $(SQUIRREL_FLAGS) $(ISRCS) $(SRCS) $(SQUIRREL_INTERP) $(LIBS) $(SQUIRREL_LIB) $(INCLUDES) $(SQUIRREL_INCLUDE) -o $(SQUIRREL)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+squirrel_cpp: $(SRCS)
+	$(SWIG) -c++ -squirrel $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) $(SQUIRREL_FLAGS) $(ICXXSRCS) $(CXXSRCS) $(SQUIRREL_INTERP) $(LIBS) $(SQUIRREL_LIB) $(INCLUDES) $(SQUIRREL_INCLUDE) -o $(SQUIRREL)
+
+# -----------------------------------------------------------------
+# Build statically linked Squirrel interpreter
+# -----------------------------------------------------------------
+
+squirrel_static: $(SRCS)
+	$(SWIG) -squirrel -module example $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) $(SQUIRREL_FLAGS) $(ISRCS) $(SRCS) $(SQUIRREL_INTERP) $(LIBS) $(SQUIRREL_LIB) $(INCLUDES) $(SQUIRREL_INCLUDE) -o $(SQUIRREL)
+
+squirrel_static_cpp: $(SRCS)
+	$(SWIG) -c++ -squirrel -module example $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) $(SQUIRREL_FLAGS) $(ICXXSRCS) $(CXXSRCS) $(SQUIRREL_INTERP) $(LIBS) $(SQUIRREL_LIB) $(INCLUDES) $(SQUIRREL_INCLUDE) -o $(SQUIRREL)
+
+# -----------------------------------------------------------------
+# Run Squirrel example
+# -----------------------------------------------------------------
+
+squirrel_run:
+	$(RUNTOOL) $(SQUIRREL) $(SQUIRREL_SCRIPT) $(RUNPIPE)
+
+squirrel_embed_run:
+	$(RUNTOOL) ./$(TARGET) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+squirrel_version:
+	$(SQUIRREL) -v | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the Squirrel examples
+# -----------------------------------------------------------------
+
+squirrel_clean:
+	rm -f *_wrap* *~ .~* @SQUIRRELBIN@
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+
+##################################################################
 #####                   ALLEGRO CL                          ######
 ##################################################################
 

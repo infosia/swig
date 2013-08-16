@@ -3,7 +3,7 @@
 *.class
 
 # Editor files and various other junk
-*.sw?
+*.swp
 *.bak
 
 # Local PCRE
@@ -104,6 +104,7 @@ Examples/test-suite/go/*/
 Examples/test-suite/guile/*/
 Examples/test-suite/java/*/
 Examples/test-suite/lua/*/
+Examples/test-suite/squirrel/*/
 Examples/test-suite/mzscheme/*/
 Examples/test-suite/ocaml/*/
 Examples/test-suite/octave/*/

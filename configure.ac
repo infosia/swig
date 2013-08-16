@@ -378,6 +378,12 @@ case $host in
    *) LUA_SO=$SO;;
 esac
 
+AC_SUBST(SQUIRREL_SO)
+case $host in
+   *-*-darwin*) SQUIRREL_SO=.so;;
+   *) SQUIRREL_SO=$SO;;
+esac
+
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
 AC_CHECK_LIB(dld, shl_load)	# Dynamic linking for HP-UX
@@ -1958,6 +1964,43 @@ AC_SUBST(LUADYNAMICLINKING)
 AC_SUBST(LUAFLAGS)
 AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
+
+#----------------------------------------------------------------
+# Look for Squirrel
+#----------------------------------------------------------------
+
+SQUIRRELDIR=
+SQUIRRELINCLUDE=
+SQUIRRELLIB=
+SQUIRRELFLAGS=
+SQUIRRELBIN=../sq
+
+AC_ARG_WITH(squirrel, AS_HELP_STRING([--without-squirrel], [Disable Squirrel])
+AS_HELP_STRING([--with-squirrel=path], [Set location of Squirrel sources/headers]),[ SQUIRRELDIR="$withval"], [SQUIRRELDIR=yes])
+
+# First, check for "--without-squirrel" or "--with-squirrel=no".
+if test x"${SQUIRRELDIR}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Squirrel])
+else
+
+SQUIRRELINCLUDE=$SQUIRRELDIR/include
+SQUIRRELLIB=$SQUIRRELDIR/lib
+
+# look for the header files & set SQUIRRELFLAGS accordingly
+# will clear SQUIRRELBIN if not present
+if test -n "$SQUIRRELINCLUDE"; then
+  AC_CHECK_FILE($SQUIRRELINCLUDE/SQUIRREL.h,[SQUIRRELFLAGS="$ISYSTEM$SQUIRRELINCLUDE"],[SQUIRRELBIN=])
+fi
+
+if test -n "$SQUIRRELLIB"; then
+  AC_CHECK_FILE($SQUIRRELLIB/libSQUIRREL.a,[SQUIRRELLINK="-L$SQUIRRELLIB -lsquirrel -lsqstdlib"],[SQUIRRELBIN=])
+fi
+
+fi # if not disabled
+
+AC_SUBST(SQUIRRELFLAGS)
+AC_SUBST(SQUIRRELLINK)
+AC_SUBST(SQUIRRELBIN)
 
 #----------------------------------------------------------------
 # Look for Allegro Common Lisp

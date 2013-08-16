@@ -45,6 +45,7 @@ extern "C" {
   Language *swig_csharp(void);
   Language *swig_allegrocl(void);
   Language *swig_lua(void);
+  Language *swig_squirrel(void);
   Language *swig_clisp(void);
   Language *swig_cffi(void);
   Language *swig_uffi(void);
@@ -74,6 +75,7 @@ static swig_module modules[] = {
   {"-guile", swig_guile, "Guile"},
   {"-java", swig_java, "Java"},
   {"-lua", swig_lua, "Lua"},
+  {"-squirrel", swig_squirrel, "Squirrel"},
   {"-modula3", swig_modula3, "Modula 3"},
   {"-mzscheme", swig_mzscheme, "Mzscheme"},
   {"-ocaml", swig_ocaml, "Ocaml"},
