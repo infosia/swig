@@ -826,6 +826,31 @@ public:
     Printv(f_wrappers, "static const char *swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
+    // name space
+    String *nspace_names = NewString("");
+    String *nspace = Getattr(n, "sym:nspace");
+
+    if (nspace) {
+      Replaceall(nspace, ".", "::");
+      String *nspace_first;
+      String *nspace_suffix = Copy(nspace);
+      while((nspace_first = Swig_scopename_first(nspace_suffix))) {
+
+        Printf(nspace_names, "\"%s\",", nspace_first);
+        Delete(nspace_first);
+
+        String *nspace_token = Swig_scopename_suffix(nspace_suffix);
+        Delete(nspace_suffix);
+
+        nspace_suffix = Copy(nspace_token);
+      }
+      Printf(nspace_names, "\"%s\",", nspace_suffix);
+      Delete(nspace_suffix);
+    }
+
+    Printv(f_wrappers, "static const char *swig_", mangled_classname, "_nspace[] = {", nspace_names, "0};\n", NIL);
+    Delete(nspace_names);
+
     /* swig_squirrel_class start */
     Printv(f_wrappers, "static swig_squirrel_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ", ", NIL);
 
@@ -849,8 +874,8 @@ public:
       Printf(f_wrappers, ", 0");
     }
 
-    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names, swig_%s_constants };\n\n",
-           mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname);
+    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names, swig_%s_constants, swig_%s_nspace };\n\n",
+           mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname);
     /* swig_squirrel_class end */
 
     Delete(t);

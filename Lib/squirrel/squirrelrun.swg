@@ -89,6 +89,7 @@ typedef struct swig_squirrel_class
   struct swig_squirrel_class **bases;
   const char **base_names;
   swig_squirrel_const_info *constants;
+  const char **nspace;
 } swig_squirrel_class;
 
 
@@ -339,6 +340,32 @@ static void install_variable_functions(HSQUIRRELVM v, const char *name, SQFUNCTI
     add_new_function(v, name, setter);
     sq_pop(v, 1);
   }
+}
+
+/* add new name space */
+static int add_name_space(HSQUIRRELVM v, swig_squirrel_class *clss) {
+  int i;
+  int count = 0;
+  for (i = 0; clss->nspace[i]; i++) {
+    if (get_object_by_name(v, clss->nspace[i])) {
+#ifdef SWIGRUNTIME_DEBUG
+      printf("save_name_space %s\n", clss->nspace[i]);
+#endif
+    } else {
+      sq_pushstring(v, clss->nspace[i], -1);
+      sq_newtable(v);
+      sq_newslot(v, -3, SQFalse);
+
+      if (get_object_by_name(v, clss->nspace[i])) {
+#ifdef SWIGRUNTIME_DEBUG
+        printf("add_name_space %s\n", clss->nspace[i]);
+#endif
+      }
+    }
+
+    count++;
+  }
+  return count;
 }
 
 /* -----------------------------------------------------------------------------
@@ -657,6 +684,9 @@ SWIGINTERN void  SWIG_Squirrel_class_register(HSQUIRRELVM v, swig_squirrel_class
   printf("SWIG_Squirrel_class_register %s\n", clss->name);
 #endif
 
+  // add name space
+  int nspace_count = add_name_space(v, clss);
+
   // Create class
   sq_pushstring(v, clss->name, -1);
   sq_newclass(v, SQFalse);
@@ -675,6 +705,9 @@ SWIGINTERN void  SWIG_Squirrel_class_register(HSQUIRRELVM v, swig_squirrel_class
 
   /* Register new class */
   sq_newslot(v, -3, SQFalse);
+
+  /* pop name space */
+  sq_pop(v, nspace_count);
 }
 
 /* -----------------------------------------------------------------------------
