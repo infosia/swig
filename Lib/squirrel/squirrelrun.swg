@@ -714,12 +714,12 @@ SWIG_Squirrel_InstallConstants(HSQUIRRELVM v, swig_squirrel_const_info constants
     {
     case SWIG_SQUIRREL_INT:
       sq_pushstring(v, constants[i].name, -1);
-      sq_pushfloat(v, (double)constants[i].lvalue);
+      sq_pushinteger(v, (SQInteger)constants[i].lvalue);
       sq_newslot(v, -3, SQTrue);
       break;
     case SWIG_SQUIRREL_FLOAT:
       sq_pushstring(v, constants[i].name, -1);
-      sq_pushfloat(v, (double)constants[i].dvalue);
+      sq_pushfloat(v, (SQFloat)constants[i].dvalue);
       sq_newslot(v, -3, SQTrue);
       break;
     case SWIG_SQUIRREL_STRING:

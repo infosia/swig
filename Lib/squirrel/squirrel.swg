@@ -94,16 +94,16 @@
  * ----------------------------------------------------------------------------- */
 // this basically adds to a table of constants
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-       { SWIG_SQUIRREL_INT,     (char *)"$constname", (long) $value, 0, 0, 0}
+       { SWIG_SQUIRREL_INT,     (char *)"$constname", (SQInteger) $value, 0, 0, 0}
 
 %typemap(consttab) float, double
-       { SWIG_SQUIRREL_FLOAT,   (char *)"$constname", 0, (double) $value, 0, 0}
+       { SWIG_SQUIRREL_FLOAT,   (char *)"$constname", 0, (SQFloat) $value, 0, 0}
 
 %typemap(consttab) char, char *
        { SWIG_SQUIRREL_STRING,  (char *)"$constname", 0, 0, (void *)"$value", 0}
 
 %typemap(consttab) long long, unsigned long long
-       { SWIG_SQUIRREL_INT, (char *) "$constname", 0, 0, (long long)"$value", 0}
+       { SWIG_SQUIRREL_INT, (char *) "$constname", 0, 0, (SQInteger)"$value", 0}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
        { SWIG_SQUIRREL_POINTER, (char *)"$constname", 0, 0, (void *)$value, &$1_descriptor}
