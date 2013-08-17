@@ -628,6 +628,9 @@ public:
     String *value = Getattr(n, "value");
     String *tm;
 
+    String *constname = Copy(name);
+    Replaceall(constname, "::", ".");
+
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
@@ -645,6 +648,7 @@ public:
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
+      Replaceall(tm, "$constname", constname);
       Printf(s_const_tab, "  %s,\n", tm);
     }
     else if ((tm = Swig_typemap_lookup("constcode", n, name, 0)))
@@ -653,6 +657,7 @@ public:
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
+      Replaceall(tm, "$constname", constname);
       Printf(f_init, "%s\n", tm);
     }
     else
