@@ -25,6 +25,7 @@ private:
   String *s_const_tab;      // table of global constants
   String *s_methods_tab;  // table of class methods
   String *s_attr_tab;   // table of class attributes
+  String *s_sattr_tab;  // table of class static attributes
 
   int have_constructor;
   int have_destructor;
@@ -628,9 +629,6 @@ public:
     String *value = Getattr(n, "value");
     String *tm;
 
-    String *constname = Copy(name);
-    Replaceall(constname, "::", ".");
-
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
@@ -648,8 +646,14 @@ public:
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
-      Replaceall(tm, "$constname", constname);
-      Printf(s_const_tab, "  %s,\n", tm);
+
+      if (checkAttribute(n, "ismember", "1")) {
+        Replaceall(tm, "$constname", Getattr(n, "memberconstantHandler:sym:name"));
+        Printf(s_sattr_tab, "  %s,\n", tm);
+      } else {
+        Replaceall(tm, "$constname", iname);
+        Printf(s_const_tab, "  %s,\n", tm);
+      }
     }
     else if ((tm = Swig_typemap_lookup("constcode", n, name, 0)))
     {
@@ -657,7 +661,7 @@ public:
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
-      Replaceall(tm, "$constname", constname);
+      Replaceall(tm, "$constname", iname);
       Printf(f_init, "%s\n", tm);
     }
     else
@@ -762,6 +766,10 @@ public:
     Printf(s_methods_tab, "static swig_squirrel_method swig_");
     Printv(s_methods_tab, mangled_classname, "_methods[] = {\n", NIL);
 
+    s_sattr_tab = NewString("");
+    Printf(s_sattr_tab, "static swig_squirrel_const_info swig_");
+    Printv(s_sattr_tab, mangled_classname, "_constants[] = {\n", NIL);
+
     // Generate normal wrappers
     Language::classHandler(n);
 
@@ -781,8 +789,12 @@ public:
     Printf(s_attr_tab, "    {0,0,0}\n};\n");
     Printv(f_wrappers, s_attr_tab, NIL);
 
+    Printf(s_sattr_tab, "    {0,0,0,0,0,0}\n};\n");
+    Printv(f_wrappers, s_sattr_tab, NIL);
+
     Delete(s_methods_tab);
     Delete(s_attr_tab);
+    Delete(s_sattr_tab);
 
     String *base_class = NewString("");
     String *base_class_names = NewString("");
@@ -837,8 +849,8 @@ public:
       Printf(f_wrappers, ", 0");
     }
 
-    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names };\n\n",
-           mangled_classname, mangled_classname, mangled_classname, mangled_classname);
+    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names, swig_%s_constants };\n\n",
+           mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname);
     /* swig_squirrel_class end */
 
     Delete(t);

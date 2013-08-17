@@ -88,6 +88,7 @@ typedef struct swig_squirrel_class
   swig_squirrel_attribute     *attributes;
   struct swig_squirrel_class **bases;
   const char **base_names;
+  swig_squirrel_const_info *constants;
 } swig_squirrel_class;
 
 
@@ -581,6 +582,41 @@ SWIGINTERN SQInteger SWIG_Squirrel_class_set(HSQUIRRELVM v)
   return print_error(v, "the index '%s' does not exist", name);
 }
 
+/* Install Constants */
+SWIGINTERN void
+SWIG_Squirrel_InstallConstants(HSQUIRRELVM v, swig_squirrel_const_info constants[])
+{
+  assert(is_table(v, -1) || is_class(v, -1));
+
+  int i;
+  for (i = 0; constants[i].type; i++)
+  {
+#ifdef SWIGRUNTIME_DEBUG
+    printf("SWIG_Squirrel_InstallConstants: add constant %s\n", constants[i].name);
+#endif
+    switch (constants[i].type)
+    {
+    case SWIG_SQUIRREL_INT:
+      sq_pushstring(v, constants[i].name, -1);
+      sq_pushinteger(v, (SQInteger)constants[i].lvalue);
+      sq_newslot(v, -3, SQTrue);
+      break;
+    case SWIG_SQUIRREL_FLOAT:
+      sq_pushstring(v, constants[i].name, -1);
+      sq_pushfloat(v, (SQFloat)constants[i].dvalue);
+      sq_newslot(v, -3, SQTrue);
+      break;
+    case SWIG_SQUIRREL_STRING:
+      sq_pushstring(v, constants[i].name, -1);
+      sq_pushstring(v, (char *) constants[i].pvalue, -1);
+      sq_newslot(v, -3, SQTrue);
+      break;
+    default:
+      break;
+    }
+  }
+}
+
 /* helper add a variable to a registered class */
 SWIGINTERN void  SWIG_Squirrel_add_class_variable(HSQUIRRELVM v, const char *name, SQFUNCTION getter, SQFUNCTION setter)
 {
@@ -610,6 +646,8 @@ SWIGINTERN void  SWIG_Squirrel_add_class_details(HSQUIRRELVM v, swig_squirrel_cl
   {
     add_new_function(v, clss->methods[i].name, clss->methods[i].method);
   }
+
+  SWIG_Squirrel_InstallConstants(v, clss->constants);
 }
 
 /* performs the entire class registration process */
@@ -697,42 +735,6 @@ SWIGRUNTIME void *SWIG_Squirrel_MustGetPtr(HSQUIRRELVM v, int index, swig_type_i
 /* -----------------------------------------------------------------------------
  * global variable support code: class/struct typemap functions
  * ----------------------------------------------------------------------------- */
-
-/* Install Constants */
-SWIGINTERN void
-SWIG_Squirrel_InstallConstants(HSQUIRRELVM v, swig_squirrel_const_info constants[])
-{
-  assert(is_table(v, -1));
-
-  int i;
-  for (i = 0; constants[i].type; i++)
-  {
-#ifdef SWIGRUNTIME_DEBUG
-    printf("SWIG_Squirrel_InstallConstants: add constant %s\n", constants[i].name);
-#endif
-    switch (constants[i].type)
-    {
-    case SWIG_SQUIRREL_INT:
-      sq_pushstring(v, constants[i].name, -1);
-      sq_pushinteger(v, (SQInteger)constants[i].lvalue);
-      sq_newslot(v, -3, SQTrue);
-      break;
-    case SWIG_SQUIRREL_FLOAT:
-      sq_pushstring(v, constants[i].name, -1);
-      sq_pushfloat(v, (SQFloat)constants[i].dvalue);
-      sq_newslot(v, -3, SQTrue);
-      break;
-    case SWIG_SQUIRREL_STRING:
-      sq_pushstring(v, constants[i].name, -1);
-      sq_pushstring(v, (char *) constants[i].pvalue, -1);
-      sq_newslot(v, -3, SQTrue);
-      break;
-    default:
-      break;
-    }
-  }
-}
-
 
 /* storing/access of swig_module_info */
 SWIGRUNTIME swig_module_info *
