@@ -63,8 +63,8 @@ typedef struct
 {
   int type;
   char *name;
-  long lvalue;
-  double dvalue;
+  SQInteger lvalue;
+  SQFloat dvalue;
   void   *pvalue;
   swig_type_info **ptype;
 } swig_squirrel_const_info;
