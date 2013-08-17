@@ -56,9 +56,10 @@
 %typemap(out) SWIGTYPE*,SWIGTYPE&
 %{SWIG_NewPointerObj(v,$1,$descriptor,$owner);%}
 
-// passing objects by value (yuk: do you really have to do this?)
-// what we do is get it as a pointer (the $&ltype argp)
-// then do an assignment
+
+// passing objects by value
+// SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
+// then dereferences it to get the object
 %typemap(in, checkfn="is_userdata") SWIGTYPE
 {
    $&ltype argp;
