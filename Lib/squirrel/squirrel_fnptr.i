@@ -21,6 +21,7 @@ just push the parameters, call the function and return the result.
 
   int my_func(int a, int b, SWIGSQUIRREL_FN fn)
   {
+    sq_push(fn.v, fn.idx);
     sq_pushroottable(fn.v);
     sq_pushinteger(fn.v, a);
     sq_pushinteger(fn.v, b);
