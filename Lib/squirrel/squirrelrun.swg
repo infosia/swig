@@ -185,6 +185,11 @@ static int is_instance(HSQUIRRELVM v, int index)
   return (OT_INSTANCE == sq_gettype(v, index));
 }
 
+static int is_closure(HSQUIRRELVM v, int index)
+{
+  return (OT_CLOSURE == sq_gettype(v, index));
+}
+
 static SQInteger print_args(HSQUIRRELVM v)
 {
   int n;
