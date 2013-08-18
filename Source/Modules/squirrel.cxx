@@ -29,9 +29,9 @@ private:
 
   int have_constructor;
   int have_destructor;
-  String *destructor_action;
   String *class_name;
   String *constructor_name;
+  bool is_class_struct;
 
 public:
 
@@ -44,7 +44,8 @@ public:
     f_initbeforefunc(0),
     s_cmd_tab(0),
     s_var_tab(0),
-    s_const_tab(0)
+    s_const_tab(0),
+    is_class_struct(false)
   {
   }
 
@@ -219,6 +220,11 @@ public:
     if (overname)
     {
       Append(wname, overname);
+    }
+
+    if (is_constructor && !is_class_struct) 
+    {
+      Printv(f->def, "static SQInteger ", Swig_name_wrapper(Swig_name_destroy(NSPACE_TODO, name)), "(SQUserPointer p, SQInteger size);\n", NIL);
     }
 
     Printv(f->def, "static SQInteger ", wname, "(HSQUIRRELVM v) {", NIL);
@@ -725,7 +731,8 @@ public:
     constructor_name = 0;
     have_constructor = 0;
     have_destructor = 0;
-    destructor_action = 0;
+
+    is_class_struct = checkAttribute(n, "kind", "struct") ;
 
     class_name = Getattr(n, "sym:name");
     if (!addSymbol(class_name, n))
@@ -733,25 +740,6 @@ public:
 
     real_classname = Getattr(n, "name");
     mangled_classname = Swig_name_mangle(real_classname);
-
-    bool is_struct = checkAttribute(n, "kind", "struct") ;
-
-    if (is_struct)
-    {
-      Printv(f_wrappers, "static SQInteger ", Swig_name_wrapper(Swig_name_destroy(NSPACE_TODO, real_classname)), "(SQUserPointer p, SQInteger size) {\n", NIL);
-      Printv(f_wrappers, "  free((", Getattr(n, "kind"), " ", real_classname, " *) p);\n", NIL);
-      Printf(f_wrappers, "}\n");
-    }
-    else
-    {
-      Printv(f_wrappers, "static SQInteger ", Swig_name_wrapper(Swig_name_destroy(NSPACE_TODO, real_classname)), "(SQUserPointer p, SQInteger size) {\n", NIL);
-      Printv(f_wrappers, "#ifdef __cplusplus\n");
-      Printv(f_wrappers, "  delete (", real_classname, " *) p;\n", NIL);
-      Printv(f_wrappers, "#else\n");
-      Printv(f_wrappers, "  free((", real_classname, " *) p);\n", NIL);
-      Printv(f_wrappers, "#endif\n");
-      Printf(f_wrappers, "}\n");
-    }
 
     static Hash *emitted = NewHash();
     if (Getattr(emitted, mangled_classname))
@@ -964,7 +952,44 @@ public:
     REPORT("destructorHandler", n);
     //Language::destructorHandler(n);
     have_destructor = 1;
-    destructor_action = Getattr(n, "wrap:action");
+
+    String *real_classname = Getattr(n, "sym:name");
+    bool is_extend = checkAttribute(n, "feature:extend", "1");
+
+    String *destructor_code = Getattr(n, "code");
+    String *self = NewString("");
+
+    Printf(self, "(%s *) p", real_classname);
+
+    Replaceall(destructor_code, "$self", self);
+
+    if (is_class_struct)
+    {
+      Printv(f_wrappers, "static SQInteger ", Swig_name_wrapper(Swig_name_destroy(NSPACE_TODO, real_classname)), "(SQUserPointer p, SQInteger size) {\n", NIL);
+      if (is_extend) {
+        Printv(f_wrappers, tab2, destructor_code, "\n", NIL);
+      } else {
+        Printv(f_wrappers, "  free(", self, ");\n", NIL);
+      }
+      Printf(f_wrappers, "}\n");
+    }
+    else
+    {
+      Printv(f_wrappers, "static SQInteger ", Swig_name_wrapper(Swig_name_destroy(NSPACE_TODO, real_classname)), "(SQUserPointer p, SQInteger size) {\n", NIL);
+      if (is_extend) {
+        Printv(f_wrappers, tab2, destructor_code, "\n", NIL);
+      } else {
+        Printv(f_wrappers, "#ifdef __cplusplus\n");
+        Printv(f_wrappers, "  delete ", self, ";\n", NIL);
+        Printv(f_wrappers, "#else\n");
+        Printv(f_wrappers, "  free(", self, ");\n", NIL);
+        Printv(f_wrappers, "#endif\n");
+      }
+      Printf(f_wrappers, "}\n");
+    }
+
+    Delete(self);
+
     return SWIG_OK;
   }
 
