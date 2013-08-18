@@ -369,6 +369,61 @@ static int add_name_space(HSQUIRRELVM v, swig_squirrel_class *clss) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Class/structure conversion fns
+ * ----------------------------------------------------------------------------- */
+
+/* pushes a new object into the squirrel stack */
+SWIGRUNTIME void SWIG_Squirrel_NewPointerObj(HSQUIRRELVM v, void *ptr, swig_type_info *type, int own)
+{
+  swig_squirrel_userdata *usr;
+  if (!ptr)
+  {
+    sq_pushnull(v);
+    return;
+  }
+  usr = (swig_squirrel_userdata *)sq_newuserdata(v, sizeof(swig_squirrel_userdata));
+  usr->ptr = ptr;
+  usr->type = type;
+  usr->own = own;
+}
+
+/* takes a object from the squirrel stack & converts it into an object of the correct type (if possible) */
+SWIGRUNTIME int SWIG_Squirrel_ConvertPtr(HSQUIRRELVM v, int index, void **ptr, swig_type_info *type, int flags)
+{
+  SQRESULT result;
+  swig_squirrel_userdata *usr;
+  swig_cast_info *cast;
+  result = sq_getuserdata(v, index, (SQUserPointer *) &usr, 0);
+  if (SQ_SUCCEEDED(result))
+  {
+    cast = SWIG_TypeCheckStruct(usr->type, type);
+    if (cast)
+    {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(cast, usr->ptr, &newmemory);
+      assert(!newmemory); /* newmemory handling not yet implemented */
+      return 0;
+    }
+  }
+  return 1;
+}
+
+SWIGRUNTIME void *SWIG_Squirrel_MustGetPtr(HSQUIRRELVM v, int index, swig_type_info *type, int flags,
+    int argnum, const char *func_name)
+{
+  void *result;
+
+  if (SWIG_ConvertPtr(v, index, &result, type, flags))
+  {
+
+    print_error(v, "Error in %s, expected a %s at argument number %d\n",
+                func_name, type->str ? type->str : "void*", argnum);
+  }
+
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
  * global variable support code: modules
  * ----------------------------------------------------------------------------- */
 
@@ -638,6 +693,11 @@ SWIG_Squirrel_InstallConstants(HSQUIRRELVM v, swig_squirrel_const_info constants
       sq_pushstring(v, (char *) constants[i].pvalue, -1);
       sq_newslot(v, -3, SQTrue);
       break;
+    case SWIG_SQUIRREL_POINTER:
+      sq_pushstring(v, constants[i].name, -1);
+      SWIG_NewPointerObj(v, constants[i].pvalue, *constants[i].ptype, 0);
+      sq_newslot(v, -3, SQTrue);
+      break;
     default:
       break;
     }
@@ -709,62 +769,6 @@ SWIGINTERN void  SWIG_Squirrel_class_register(HSQUIRRELVM v, swig_squirrel_class
   /* pop name space */
   sq_pop(v, nspace_count);
 }
-
-/* -----------------------------------------------------------------------------
- * Class/structure conversion fns
- * ----------------------------------------------------------------------------- */
-
-/* pushes a new object into the squirrel stack */
-SWIGRUNTIME void SWIG_Squirrel_NewPointerObj(HSQUIRRELVM v, void *ptr, swig_type_info *type, int own)
-{
-  swig_squirrel_userdata *usr;
-  if (!ptr)
-  {
-    sq_pushnull(v);
-    return;
-  }
-  usr = (swig_squirrel_userdata *)sq_newuserdata(v, sizeof(swig_squirrel_userdata));
-  usr->ptr = ptr;
-  usr->type = type;
-  usr->own = own;
-}
-
-/* takes a object from the squirrel stack & converts it into an object of the correct type (if possible) */
-SWIGRUNTIME int SWIG_Squirrel_ConvertPtr(HSQUIRRELVM v, int index, void **ptr, swig_type_info *type, int flags)
-{
-  SQRESULT result;
-  swig_squirrel_userdata *usr;
-  swig_cast_info *cast;
-  result = sq_getuserdata(v, index, (SQUserPointer *) &usr, 0);
-  if (SQ_SUCCEEDED(result))
-  {
-    cast = SWIG_TypeCheckStruct(usr->type, type);
-    if (cast)
-    {
-      int newmemory = 0;
-      *ptr = SWIG_TypeCast(cast, usr->ptr, &newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
-      return 0;
-    }
-  }
-  return 1;
-}
-
-SWIGRUNTIME void *SWIG_Squirrel_MustGetPtr(HSQUIRRELVM v, int index, swig_type_info *type, int flags,
-    int argnum, const char *func_name)
-{
-  void *result;
-
-  if (SWIG_ConvertPtr(v, index, &result, type, flags))
-  {
-
-    print_error(v, "Error in %s, expected a %s at argument number %d\n",
-                func_name, type->str ? type->str : "void*", argnum);
-  }
-
-  return result;
-}
-
 /* -----------------------------------------------------------------------------
  * global variable support code: class/struct typemap functions
  * ----------------------------------------------------------------------------- */
