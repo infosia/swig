@@ -7,7 +7,6 @@
 %}
 
 %nodefaultctor Foo;
-%nodefaultdtor Color;
 
 /* Let's set custom destructor for Color struct */
 %extend Color {

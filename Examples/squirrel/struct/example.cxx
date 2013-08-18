@@ -5,5 +5,6 @@
 
 void colorFree(Color *p) {
   printf("Custom destructor for Color is called!\n");
+  free(p->foo);
   free(p);
 }
